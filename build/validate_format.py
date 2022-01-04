@@ -109,7 +109,7 @@ def check_format(filename):
     appending to error list as needed
     """
     with open(filename) as fp:
-        lines = list(line.rstrip() for line in fp)
+        lines = [line.rstrip() for line in fp]
     check_alphabetical(lines)
     # START Check Entries
     num_in_category = min_entries_per_section + 1

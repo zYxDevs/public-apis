@@ -17,15 +17,13 @@ def parse_links(filename):
         '((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:\'\".,<>?«»“”‘’]))',
         content)
 
-    links = [
+    return [
         str(raw_link[0]).rstrip('/') for raw_link in raw_links
     ]
 
-    return links
-
 def dup_links(links):
     """Check for duplicated links"""
-    print(f'Checking for duplicated links...')
+    print('Checking for duplicated links...')
     hasError = False
     seen = {}
     dupes = []
@@ -33,15 +31,14 @@ def dup_links(links):
     for link in links:
         if link not in seen:
             seen[link] = 1
-        else:
-            if seen[link] == 1:
-                dupes.append(link)
+        elif seen[link] == 1:
+            dupes.append(link)
 
     if not dupes:
-        print(f"No duplicate links")
+        print('No duplicate links')
     else:
         print(f"Found duplicate links: {dupes}")  
-        hasError = True  
+        hasError = True
     return hasError
 
 def validate_links(links):
@@ -55,7 +52,7 @@ def validate_links(links):
             host = link.split('//', 1)[1].split('/', 1)[0]
             if host[:3] == 'www':
                 host = host[4:]
-                
+
             resp = h.request(link + "/", headers={
                 # Faking user agent as some hosting services block not-whitelisted UA
                 'User-Agent': 'Mozilla/5.0 (Windows NT 6.2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1467.0 Safari/537.36',
@@ -77,11 +74,17 @@ def validate_links(links):
             hasError = True
             # Ignore some exceptions which are not actually errors.
             # The list below should be extended with other exceptions in the future if needed
-            if (-1 != str(e).find("[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:852)")):
+            if (
+                "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:852)"
+                in str(e)
+            ):
                 print(f"ERR:SSL: {e} : {link}")
-            elif (-1 != str(e).find("Content purported to be compressed with gzip but failed to decompress.")):
+            elif (
+                "Content purported to be compressed with gzip but failed to decompress."
+                in str(e)
+            ):
                 print(f"ERR:GZP: {e} : {link}")
-            elif (-1 != str(e).find("Unable to find the server at")):
+            elif "Unable to find the server at" in str(e):
                 print(f"ERR:SRV: {e} : {link}")
             else:
                 print(f"ERR:UKN: {e} : {link}")
